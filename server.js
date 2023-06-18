@@ -44,6 +44,7 @@ mongoose.connect(`mongodb+srv://${username}:${password}@${cluster}.kqmq35u.mongo
 // models
 const Item = require('./src/models/item');
 const Customer = require('./src/models/customer');
+const Sales = require('./src/models/sales');
 
 app.use(cors({
     origin: '*'
@@ -171,6 +172,79 @@ app.put('/customers/:id', multer({ storage: diskStorage }).single('ktp'), async 
     res.status(200).json({status: true, message:'Updated data success'});
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+});
+
+// Menghapus customers
+app.delete('/customers/:id', async (req, res) => {
+  try {
+    await Customer.deleteOne({ _id: req.params.id });
+    res.json({ message: 'Customer berhasil dihapus' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// list sales
+app.get('/sales', async (req, res) => {
+  try {
+    const sales = await Sales.find();
+    res.status(200).json(sales);
+  }catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// tambah sales
+app.post('/sales', async (req, res) => {
+  const { tanggal_transaksi, customer, item, diskon, sub_total, total } = req.body;
+  try{
+    const newSales = new Sales({
+      tanggal_transaksi,
+      customer,
+      item,
+      diskon,
+      sub_total,
+      total
+    });
+
+    await newSales.save();
+    let idProducts = item.map((result) => {
+      return result._id
+    });
+    
+    let qtyProducts = item.map((result) => {
+      return result.qty
+    });
+
+    for (let i = 0; i < idProducts.length; i++) {
+      const id = idProducts[i];
+      const qty = qtyProducts[i];
+  
+      // const result = await collection.updateOne(
+      //   { _id: id },
+      //   { $inc: { stok: -qty } }
+      // );
+      await Item.updateOne(
+        { _id: id },
+        { $inc: { stok: -qty } }
+      );
+  
+      console.log(`Stok dari produk dengan ID ${id} berhasil diupdate.`);
+    }
+    res.status(201).json({status: true, message: 'Sales berhasil ditambahkan'});
+  }catch(error) {
+    res.status(500).json({status: false, message: 'Sales gagal ditambahkan ', error});
+  }  
+});
+
+// hapus sales
+app.delete('/sales/:id', async (req, res) => {
+  try {
+    await Sales.deleteOne({ _id: req.params.id });
+    res.json({ message: 'Sales berhasil dihapus' });
+  }catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 

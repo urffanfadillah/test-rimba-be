@@ -1,40 +1,18 @@
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-const Item = require('./item');
-const Customer = require('./customer');
-/*
-Field modul Sales terdiri dari code_transaksi, tanggal_transaksi, customer,
-item(multiple), qty, total_diskon(auto fill), total_harga(autofill), total_bayar
-*/
+const { Schema } = mongoose;
 
-const salesSchema = new mongoose.Schema({
-    code_transaksi: {
-        type: Schema.Types.ObjectId,
-        default: function () {
-            return new mongoose.Types.ObjectId();
-        },
-        unique: true
-    },
-    customer: {
-        type: Schema.Types.ObjectId,
-        ref: 'Customer'
-    },
-    item: [
-        {
-            item: {
-                type: Schema.Types.ObjectId,
-                ref: 'Item'
-            },
-            qty: Number
-        }
-    ],
-    email: String,
-    alamat: String,
-    diskon: Number,
-    tipe_diskon: String,
-    ktp: String
+const salesSchema = new Schema({
+  tanggal_transaksi: { type: Date, required: true },
+  customer: { type: String, required: true },
+  item: [{
+    nama_item: { type: String, required: true },
+    qty: { type: Number, required: true }
+  }],
+  diskon: { type: String, required: false },
+  sub_total: { type: String, required: false },
+  total: { type: String, required: false }
 });
-  
+
 const Sales = mongoose.model('Sales', salesSchema);
 
 module.exports = Sales;
